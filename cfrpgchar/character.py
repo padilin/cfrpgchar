@@ -42,3 +42,12 @@ class CFRPGChar:
     @property
     def health_head(self) -> int:
         return self.head_roll + self.head_bonus + self.vitality
+
+    def __repr__(self):
+        description = f"My name is {self.name}."
+        if self.rage_ability:
+            description += f" I am {self.rage_level} mad."
+        return description
+
+    def __str__(self):
+        return self.__repr__()
