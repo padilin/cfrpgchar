@@ -51,3 +51,28 @@ class CFRPGChar:
 
     def __str__(self):
         return self.__repr__()
+
+    def character_sheet_base_abilities(self):
+        return (
+            f"Strength: {self.strength}" + (self.rage_strength if self.rage_ability else "") + "\n"
+            f"Dexterity: {self.dexterity}\n"
+            f"Vitality: {self.vitality}\n"
+            f"Looks: {self.looks}\n"
+            f"Aptitude: {self.aptitude}\n"
+            f"Social: {self.social}\n"
+            f"Magic: {self.magic}\n"
+            f"Piety: {self.piety}\n"
+            f"{'-'*20}\n"
+
+        )
+
+    def character_sheet_header(self):
+        return (
+            f"{self.name}\n"
+            f"{self.rage_level if self.rage_ability else ''}\n"
+        )
+
+    def character_sheet_gm_skills(self):
+        return (
+            f"{self.combat_arts}\n"
+        )

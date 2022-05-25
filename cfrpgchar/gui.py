@@ -12,43 +12,59 @@ character_creation = [
     [sg.FileBrowse("Load Char", key="loaded_sheet", enable_events=True)]
 ]
 
-character_stats = [
-    [sg.Multiline("", size=(80, 25), key="CharacterStats")],
-    [sg.Button("Save"), sg.FileBrowse("Load Char", key="loaded_sheet", enable_events=True)]
-]
 
-layout = [
-    [sg.Column(character_creation, visible=True, key="cc"), sg.Column(character_stats, visible=False, key="cs")],
-    [sg.Button("Quit")]
-]
+character_landing = sg.Window("Character Landing", character_creation)
+character_stats_active = False
+
+character_loaded = None
 
 
-window = sg.Window("Character", layout)
-charload = None
+def open_character_sheet(character_loaded):
+    character_stats_active = True
+    character_landing.hide()
+
+    character_stats = [
+        [sg.Text(character_loaded.character_sheet_header(), size=(5, 5), key="CharHeader")],
+        [sg.VPush(), sg.Multiline(character_loaded.character_sheet_base_abilities(), size=(80, 25), key="CharBaseAbility")],
+        [sg.Button("Save"), sg.FileBrowse("Load Char", key="load_sheet", enable_events=True)],
+        [sg.Button("Close", key="close_sheet")]
+    ]
+    character_stats = sg.Window("Character Stats", character_stats, element_justification='c')
+    while True:
+        event2, values2 = character_stats.Read()
+        if event2 == "close_sheet" or event2 == "Exit":
+            character_stats.Close()
+            character_stats_active = False
+            character_landing.UnHide()
+            break
+
+        if event1 == "Save":
+            with open(f"../data/{character_loaded.name}.json", "w") as json_file:
+                json.dump(character_loaded.__dict__, json_file)
+
+        if event1 == "load_sheet":
+            with open(values1["load_sheet"], 'r') as json_file:
+                json_data = json.load(json_file)
+                character_loaded = CFRPGChar(**json_data)
+                character_stats["CharHeader"].update(character_loaded.character_sheet_header())
+                character_stats["CharBaseAbility"].update(character_loaded.character_sheet_base_abilities())
+
+    character_stats.Close()
+
 
 while True:
-    event, values = window.read()
-    print(f"{event} {values}")
-
-    if event == sg.WINDOW_CLOSED or event == "Quit":
+    event1, values1= character_landing.Read()
+    if event1 == sg.WINDOW_CLOSED or event1 == "Quit":
         break
 
-    if event == "loaded_sheet":
-        with open(values["loaded_sheet"], 'r') as json_file:
+    if event1 == "loaded_sheet":
+        with open(values1["loaded_sheet"], 'r') as json_file:
             json_data = json.load(json_file)
-            charload = CFRPGChar(**json_data)
-        window["cc"].update(visible=False)
-        window["cs"].update(visible=True)
-        window["CharacterStats"].update(f"{charload.name}\nStrength: {charload.strength} \nDex: {charload.dexterity}")
+            character_loaded = CFRPGChar(**json_data)
+        open_character_sheet(character_loaded)
 
-    if event == "Save":
-        with open(f"../data/{charload.name}.json", "w") as json_file:
-            json.dump(charload.__dict__, json_file)
+    if event1 == "Submit":
+        character_loaded = CFRPGChar(values1["name"], rage_ability=values1["rage_ability"])
+        open_character_sheet(character_loaded)
 
-    if event == "Submit":
-        charload = CFRPGChar(values["name"], rage_ability=values["rage_ability"])
-        window["cc"].update(visible=False)
-        window["cs"].update(visible=True)
-        window["CharacterStats"].update(f"{charload.name}\nStrength: {charload.strength} \nDex: {charload.dexterity}")
-
-window.close()
+character_landing.close()
